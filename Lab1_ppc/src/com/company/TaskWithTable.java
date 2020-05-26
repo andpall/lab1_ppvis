@@ -7,11 +7,12 @@ import javafx.scene.Group;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.FlowPane;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class TaskWithTable {
-    public static Group getGroup(){
+    public static Group getGroup() {
         TextField textField = new TextField();
         Button moveToOne = new Button("переместить в 1 ");
         Button moveFromOneToTwo = new Button("переместить из 1 в 2");
@@ -20,11 +21,11 @@ public class TaskWithTable {
         moveFromOneToTwo.setWrapText(true);
         backToOne.setWrapText(true);
 
-        TableView<Table> table= new TableView<Table>();
-        TableColumn<Table,String> firstCol = new TableColumn<Table,String>("First Column");
-        firstCol.setCellValueFactory(new PropertyValueFactory<Table,String>("first_column"));
-        TableColumn<Table,String> secCol = new TableColumn<Table,String>("Second Column");
-        secCol.setCellValueFactory(new PropertyValueFactory<Table,String>("second_column"));
+        TableView<Table> table = new TableView<Table>();
+        TableColumn<Table, String> firstCol = new TableColumn<Table, String>("First Column");
+        firstCol.setCellValueFactory(new PropertyValueFactory<Table, String>("first_column"));
+        TableColumn<Table, String> secCol = new TableColumn<Table, String>("Second Column");
+        secCol.setCellValueFactory(new PropertyValueFactory<Table, String>("second_column"));
 
         table.getSelectionModel().setCellSelectionEnabled(true);//возможно выделять ячейку
         table.getColumns().add(firstCol);
@@ -35,12 +36,11 @@ public class TaskWithTable {
         moveToOne.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                if(textField.getText().equals("")){
+                if (textField.getText().equals("")) {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setContentText("введите текст" );
+                    alert.setContentText("введите текст");
                     alert.showAndWait();
-                }
-                else{
+                } else {
                     newString.add(new Table(textField.getText(), ""));
                     textField.clear();
                     table.getItems().clear();
@@ -51,10 +51,9 @@ public class TaskWithTable {
         moveFromOneToTwo.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                for(int i=0;i<newString.size();i++) {
-                    if( table.getSelectionModel().isSelected(i,firstCol))
-                    {
-                        String buff= newString.get(i).getFirst_column();
+                for (int i = 0; i < newString.size(); i++) {
+                    if (table.getSelectionModel().isSelected(i, firstCol)) {
+                        String buff = newString.get(i).getFirst_column();
                         newString.get(i).setFirst_column("");
                         newString.get(i).setSecond_column(buff);
                         table.getItems().clear();
@@ -66,10 +65,9 @@ public class TaskWithTable {
         backToOne.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                for(int i=0;i<newString.size();i++) {
-                    if( table.getSelectionModel().isSelected(i,secCol))
-                    {
-                        String buff= newString.get(i).getSecond_column();
+                for (int i = 0; i < newString.size(); i++) {
+                    if (table.getSelectionModel().isSelected(i, secCol)) {
+                        String buff = newString.get(i).getSecond_column();
                         newString.get(i).setSecond_column("");
                         newString.get(i).setFirst_column(buff);
                         table.getItems().clear();
@@ -79,8 +77,9 @@ public class TaskWithTable {
             }
         });
         FlowPane pane = new FlowPane(Orientation.VERTICAL, 10, 10);
-        pane.getChildren().addAll(textField,moveToOne,moveFromOneToTwo ,backToOne,table );
-        Group group= new Group(pane);
+        pane.getChildren().addAll(textField, moveToOne, moveFromOneToTwo, backToOne, table);
+        Group group = new Group(pane);
         return group;
+
     }
 }

@@ -15,6 +15,7 @@ import javafx.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Main extends Application {
 
@@ -22,13 +23,9 @@ public class Main extends Application {
 
     private AnimationTimer animationTimer;
 
-    private List<AnimationTimer> timers = new ArrayList<>();
-
-    volatile int[] counter = {0};
-
     volatile int[] beginCounter = {0};
 
-    volatile boolean aliveThread = true;
+    volatile AtomicBoolean aliveThread = new AtomicBoolean(true);
 
     public static void main(String[] args) {
 
@@ -38,9 +35,8 @@ public class Main extends Application {
     @Override
     public void start(Stage stage) {
         createAllStages(stage);
-        //stages.get(4).show();
         stage.show();
-        process(stage, stage.getScene());
+        animationProcess(stage, stage.getScene());
     }
 
     public void createAllStages(Stage stage) {
@@ -84,161 +80,78 @@ public class Main extends Application {
         return firstStage;
     }
 
-    public void process(Stage stage, Scene scene) {
-//        stage.getScene().getAccelerators().put(
-//                KeyCombination.keyCombination("CTRL+R"),
-//                () -> {
-//                    KeyCombination s = KeyCombination.keyCombination("CTRL+R");
-//                    System.out.println("Keycombination Detected");
-//                   longProcess(stage, scene, counter, s);
-//                }
-//        );
-
-
+    public void animationProcess(Stage stage, Scene scene) {
         scene.setOnKeyPressed(ke -> {
             if (ke.getCode().getName().equals("R") && ke.isControlDown()) {
-
                 Thread thread = new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        animationTimer = new AnimationTimer() {
-                            @Override
-                            public void handle(long l) {
-                                Platform.runLater(() -> {
-
-                                    stage.hide();
-                                });
-                                int[] anyCounter = {0};
-                                for (int i = 0; i < 5; i++) {
-                                    anyCounter[0]=i;
+                        while (aliveThread.get()) {
+                            Platform.runLater(() -> {
+                                stage.hide();
+                            });
+                            if (beginCounter[0] == 4)
+                                beginCounter[0] = 0;
+                            for (int i = beginCounter[0]; i < 5; i++) {
+                                if (aliveThread.get()) {
+                                    beginCounter[0] = i;
                                     Platform.runLater(() -> {
-                                        stages.get(anyCounter[0]).show();
+                                        stages.get(beginCounter[0]).show();
+                                        stages.get(beginCounter[0]).getScene().getAccelerators().put(
+                                                KeyCombination.keyCombination("CTRL+S"),
+                                                () -> {
+                                                    {
+                                                        aliveThread.set(false);
+                                                    }
+                                                }
+                                        );
                                     });
                                     try {
                                         Thread.sleep(1000);
                                     } catch (InterruptedException e) {
                                         e.printStackTrace();
                                     }
-                                }
-                                Platform.runLater(() -> {
-                                stages.get(0).show();
-                                });
-
-                                for (int i = 0; i < 5; i++) {
-                                    anyCounter[0]=i;
+                                } else {
                                     Platform.runLater(() -> {
-                                    stages.get(anyCounter[0]).hide();
+                                        for (int j = 0; j < 5; j++) {
+                                            stages.get(j).hide();
+                                        }
                                     });
+                                    //Thread.currentThread().interrupt();
+                                    Platform.runLater(() -> {
+                                        stage.show();
+                                    });
+                                    return;
                                 }
-                                stage.show();
-
-                                try {
-                                    Thread.sleep(1000);
-
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
-
                             }
-
-                        };
-                        animationTimer.start();
-
-
-                    }
-                });
-
-                thread.start();
-
-
-            }
-            if (ke.getCode().getName().equals("S") && ke.isControlDown()) {
-                animationTimer.stop();
-            }
-        });
-
-        stage.show();
-    }
-
-    public void process2(Stage stage, Scene scene) {
-        Service service = new Service() {
-            @Override
-            protected Task createTask() {
-                return new Task() {
-                    @Override
-                    protected Object call() throws Exception {
-                        Platform.runLater(() -> {
-                            //longProcess(stage, scene, counter);
-                        });
-                        return null;
-                    }
-                };
-            }
-        };
-        //service.start();
-        //new MyThread("myThread").start();
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                //longProcess(stage, scene, counter);
-            }
-        });
-        //shittiestMethod(stage, scene, counter);
-        //longProcess(stage, scene, counter);
-
-//        scene.setOnKeyPressed(ke -> {
-//            if (ke.getCode().getName().equals("R") && ke.isControlDown())
-//            {
-//                aliveThread = true;
-//                //thread.start();
-//                //service.start();
-//                //new MyThread("myThread").start();
-//            }
-//            if (ke.getCode().getName().equals("S") && ke.isControlDown()) {
-//                aliveThread = false;
-//            }
-//        });
-    }
-
-    public void longProcess(Stage stage, Scene scene, int[] counter, KeyCombination keySet) {
-        if (keySet.equals(KeyCombination.keyCombination("CTRL+S"))) animationTimer.stop();
-        {
-
-            animationTimer = new AnimationTimer() {
-                @Override
-                public void handle(long l) {
-                    stage.hide();
-                    for (int i = 0; i < 5; i++) {
-                        stages.get(i).show();
-
-
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
+                            //counter[0] = 0;
+                            Platform.runLater(() -> {
+                                for (int i = 0; i < 5; i++) {
+                                    stages.get(i).hide();
+                                }
+                            });
+                            Platform.runLater(() -> {
+                                stage.show();
+                            });
+                            try {
+                                Thread.sleep(1000);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            if (!aliveThread.get()) return;
                         }
                     }
-
-                    for (int i = 0; i < 5; i++) {
-                        stages.get(i).hide();
-                    }
-                    stage.show();
-
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-
-                }
-
-            };
-            animationTimer.start();
-        }
-        stage.show();
-
+                });
+                //thread.start();
+                aliveThread.set(true);
+                thread.start();
+            }
+            if (ke.getCode().getName().equals("S") && ke.isControlDown()) {
+                aliveThread.set(false);
+                stage.show();
+            }
+        });
     }
-
 }
     
     

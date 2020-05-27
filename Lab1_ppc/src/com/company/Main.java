@@ -20,15 +20,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class Main extends Application {
 
     volatile private List<Stage> stages = new ArrayList<>();
-
-    private AnimationTimer animationTimer;
-
     volatile int[] beginCounter = {0};
-
     volatile AtomicBoolean aliveThread = new AtomicBoolean(true);
 
     public static void main(String[] args) {
-
         Application.launch(args);
     }
 
@@ -61,8 +56,6 @@ public class Main extends Application {
         Scene scene = new Scene(pane);
         stage.setScene(scene);
         stage.setTitle("Лабораторная работа №1");
-        //stage.setMaximized(true);
-        //stage.show();
         return stage;
     }
 
@@ -71,13 +64,26 @@ public class Main extends Application {
         pane.getChildren().addAll(group);
         pane.setPadding(new Insets(10));
         Scene scene = new Scene(pane, y, x);
-        //stages.add(new Stage());
         Stage firstStage = new Stage();
         firstStage.setScene(scene);
         firstStage.setTitle(name);
-        //firstStage.setMaximized(true);
-        //firstStage.show();
         return firstStage;
+    }
+
+    public void bindKeyOnStage() {
+//        stages.get(beginCounter[0]).getScene().getAccelerators().put(
+//                KeyCombination.keyCombination("CTRL+S"),
+//                () -> {
+//                    {
+//                        aliveThread.set(false);
+//                    }
+//                }
+//        );
+        stages.get(beginCounter[0]).getScene().setOnKeyPressed(ke -> {
+            if (ke.getCode().getName().equals("S") && ke.isControlDown()) {
+                aliveThread.set(false);
+            }
+        });
     }
 
     public void animationProcess(Stage stage, Scene scene) {
@@ -97,14 +103,7 @@ public class Main extends Application {
                                     beginCounter[0] = i;
                                     Platform.runLater(() -> {
                                         stages.get(beginCounter[0]).show();
-                                        stages.get(beginCounter[0]).getScene().getAccelerators().put(
-                                                KeyCombination.keyCombination("CTRL+S"),
-                                                () -> {
-                                                    {
-                                                        aliveThread.set(false);
-                                                    }
-                                                }
-                                        );
+                                        bindKeyOnStage();
                                     });
                                     try {
                                         Thread.sleep(1000);
@@ -117,14 +116,12 @@ public class Main extends Application {
                                             stages.get(j).hide();
                                         }
                                     });
-                                    //Thread.currentThread().interrupt();
                                     Platform.runLater(() -> {
                                         stage.show();
                                     });
                                     return;
                                 }
                             }
-                            //counter[0] = 0;
                             Platform.runLater(() -> {
                                 for (int i = 0; i < 5; i++) {
                                     stages.get(i).hide();
@@ -142,7 +139,6 @@ public class Main extends Application {
                         }
                     }
                 });
-                //thread.start();
                 aliveThread.set(true);
                 thread.start();
             }
